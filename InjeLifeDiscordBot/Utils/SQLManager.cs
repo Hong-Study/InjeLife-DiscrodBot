@@ -1,9 +1,12 @@
 ﻿using Discord;
+using Discord.Rest;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
 public class SQLManager
 {
+    static SQLManager _instance = new SQLManager();
+    public static SQLManager Instacne { get { return _instance; } }
     private IConfigurationRoot _config;
 
     private string _host = "";
@@ -12,22 +15,16 @@ public class SQLManager
     private string _userId = "";
     private string _password = "";
     private string _connectionAddress = "";
-    public SQLManager(IConfigurationRoot config)
+    public void SetConfig(IConfigurationRoot config)
     {
         _config = config;
-    }
 
-    public async Task InitializeAsync()
-    {
         _host = _config["DB_HOST"];
         _port = _config["DB_PORT"];
         _database = _config["DB_DATABASE"];
         _userId = _config["DB_USERID"];
         _password = _config["DB_PASSWORD"];
         _connectionAddress = string.Format("HOST={0};PORT={1};USERNAME={2};PASSWORD={3};DATABASE={4}", _host, _port, _userId, _password, _database);
-
-        //await ConnectDB();
-        await Task.CompletedTask;
     }
 
     public async Task ConnectDB()
@@ -50,10 +47,18 @@ public class SQLManager
 
     public Embed TodayCafeteria()
     {
-        // 구하기
-        return ReadCafeterial("Today 학식", DateUtils.Today());
+        DateTime date = DateTime.Now;
+
+        return ReadCafeterial("Today 학식", date.Year, date.Month, date.Day);
     }
-    public Embed ReadCafeterial(string title, int days)
+
+    public Embed WeeksCafeterial(string title, int day)
+    {
+        DateTime date = DateTime.Now;
+
+        return ReadCafeterial(title, date.Year, date.Month, day);
+    }
+    public Embed ReadCafeterial(string title, int year, int month, int days)
     {
         EmbedBuilder builder = new EmbedBuilder()
             .WithTitle(title)
@@ -74,7 +79,8 @@ public class SQLManager
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = mysql;
-                    cmd.CommandText = "SELECT * FROM university_meals LIMIT 3";
+                    string format = $"'{year}-{month}-{days}'";
+                    cmd.CommandText = $"SELECT * FROM university_meals WHERE published_at = {format} LIMIT 3";
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -84,7 +90,7 @@ public class SQLManager
                             string food = "";
                             for (int i = 0; i < foods.Length; i++)
                             {
-                                food += foods[i];
+                                food += foods[i] + "\n";
                             }
                             builder.AddField(reader[2].ToString(), food);
                         }

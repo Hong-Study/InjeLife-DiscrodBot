@@ -12,11 +12,8 @@ using System.Threading.Tasks;
 
 class Program
 {
-  
     public static void Main(String[] args)
     {
         new DiscordBotMain().BotMain().GetAwaiter().GetResult();
     }
-
-    
 }

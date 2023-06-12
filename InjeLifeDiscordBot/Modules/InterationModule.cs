@@ -31,9 +31,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     {
         if (CheckChannel(Context))
         {
-            var sql = DiscordBotMain.GlobalHost.Services.GetRequiredService<SQLManager>();
-
-            var myEmbed = sql.TodayCafeteria();
+            var myEmbed = SQLManager.Instacne.TodayCafeteria();
 
             await RespondAsync(embed: myEmbed);
         }
@@ -103,14 +101,14 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
 
         // Check if there are any messages to delete.
         if (count == 0)
-            await ReplyAsync("Nothing to delete.");
+            await RespondAsync("Nothing to delete.");
         else
         {
 
             // 형변환 이후, 전체 메시지를 삭제하는 코드
             await ((ITextChannel)Context.Channel).DeleteMessagesAsync(message);
 
-            await ReplyAsync($"Done. Removed {count} {(count > 1 ? "messages" : "message")}.");
+            await RespondAsync($"Done. Removed {count} {(count > 1 ? "messages" : "message")}.");
         }
     }
 
@@ -130,33 +128,30 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
         }
 
         Embed myembed;
-        var sql = DiscordBotMain.GlobalHost.Services.GetService<SQLManager>();
-        if (sql == null)
-            return;
 
         if (inputs[0] == "Mon")
         {
-            myembed = sql.ReadCafeterial("월요일 학식", DateUtils.Monday());
+            myembed = SQLManager.Instacne.WeeksCafeterial("월요일 학식", DateUtils.Monday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Tue")
         {
-            myembed = sql.ReadCafeterial("화요일 학식", DateUtils.Tusday());
+            myembed = SQLManager.Instacne.WeeksCafeterial("화요일 학식", DateUtils.Tusday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Wed")
         {
-            myembed = sql.ReadCafeterial("수요일 학식", DateUtils.Wednesday());
+            myembed = SQLManager.Instacne.WeeksCafeterial("수요일 학식", DateUtils.Wednesday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Thu")
         {
-            myembed = sql.ReadCafeterial("목요일 학식", DateUtils.Thursday());
+            myembed = SQLManager.Instacne.WeeksCafeterial("목요일 학식", DateUtils.Thursday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Fri")
         {
-            myembed = sql.ReadCafeterial("금요일 학식", DateUtils.Friday());
+            myembed = SQLManager.Instacne.WeeksCafeterial("금요일 학식", DateUtils.Friday());
             await RespondAsync(embed: myembed);
         }
     }
@@ -164,6 +159,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("채널고정", "원하는 채널에 고정 시킵니다.")]
     public async Task HandleSelectChannel()
     {
+        FileUtils.WriteSelectChannel(Context.Guild.Id, Context.Channel.Id);
         SelectChannel[Context.Guild.Id] = Context.Channel.Id;
 
         await RespondAsync("채널 고정 성공 : " + Context.Channel.Name);
@@ -174,6 +170,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     {
         if (SelectChannel.ContainsKey(Context.Guild.Id) == true)
         {
+            FileUtils.DeleteSelectChannel(Context.Guild.Id);
             SelectChannel.Remove(Context.Guild.Id);
             await RespondAsync($"{Context.Channel.Name} 채널 고정을 해제하였습니다.");
         }

@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 public class DiscordBotMain
 {
-    public static IHost GlobalHost { get; private set; }
     public static DayTimer dayTimer;
     
     public async Task BotMain()
@@ -25,7 +24,7 @@ public class DiscordBotMain
 
         // 의존성 주입 이게 머노
         // Net Core 호스팅 환경 구성 및 애플리케이션 실행과 생명주기 관리 담당
-        GlobalHost = Host.CreateDefaultBuilder()
+        using IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices((_, services) =>
             services
             .AddSingleton(config)
@@ -34,17 +33,16 @@ public class DiscordBotMain
                 GatewayIntents = Discord.GatewayIntents.AllUnprivileged,
                 AlwaysDownloadUsers = true,
             }))
-            .AddSingleton<SQLManager>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<InteractionHandler>())
             .Build();
 
-        await RunAsync();
+        await RunAsync(host);
     }
 
-    public async Task RunAsync()
+    public async Task RunAsync(IHost host)
     {
-        using IServiceScope serviceScope = GlobalHost.Services.CreateScope();
+        using IServiceScope serviceScope = host.Services.CreateScope();
         IServiceProvider provider = serviceScope.ServiceProvider;
 
         var _client = provider.GetRequiredService<DiscordSocketClient>();
@@ -52,37 +50,23 @@ public class DiscordBotMain
         // 읽어본 Yaml 파일에 대한 구성 정보를 가져오는 코드
         var config = provider.GetRequiredService<IConfigurationRoot>();
 
-        await provider.GetRequiredService<SQLManager>().InitializeAsync();
-
+        SQLManager.Instacne.SetConfig(config);
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
-
+        
         _client.Log += async (LogMessage msg) => { Console.WriteLine(msg.Message); await Task.CompletedTask; };
         sCommands.Log += async (LogMessage msg) => { Console.WriteLine(msg.Message); await Task.CompletedTask; };
-
+        
         _client.Ready += async () =>
         {
             await _client.SetGameAsync("Please Use / Command");
-
-            if (IsDebug())
-            {
-                foreach (var guild in _client.Guilds)
-                {
-                    ulong id = guild.Id;
-                    await sCommands.RegisterCommandsToGuildAsync(id);
-                }
-            }
-            else
-            {
-                await sCommands.RegisterCommandsGloballyAsync();
-            }
         };
 
         await _client.LoginAsync(TokenType.Bot, config["tokens:discord"]);
         await _client.StartAsync();
 
         dayTimer = new DayTimer();
-        dayTimer.Start(() => { _ = DoTimer(); });
-
+        dayTimer.Start(() => { _ = DoTimer(host); });
+        
         await Task.Delay(-1);
     }
 
@@ -96,15 +80,15 @@ public class DiscordBotMain
     }
 
     // 타이머 내부 함수로, 다음날이 되면 실행한다. 1분마다 확인하게 됨.   
-    public static async Task DoTimer()
+    public static async Task DoTimer(IHost host)
     {
-        var client = GlobalHost.Services.GetRequiredService<DiscordSocketClient>();
+        var client = host.Services.GetRequiredService<DiscordSocketClient>();
         foreach (var guild in client.Guilds)
         {
             if (InteractionModule.SelectChannel.ContainsKey(guild.Id) == true)
             {
                 var channel = guild.GetTextChannel(InteractionModule.SelectChannel[guild.Id]);
-                var sql = GlobalHost.Services.GetRequiredService<SQLManager>();
+                var sql = host.Services.GetRequiredService<SQLManager>();
 
                 var myEmbed = sql.TodayCafeteria();
 
