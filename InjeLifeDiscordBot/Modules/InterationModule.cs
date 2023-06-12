@@ -157,6 +157,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("채널고정", "원하는 채널에 고정 시킵니다.")]
+    [DefaultMemberPermissions(GuildPermission.Administrator)]
     public async Task HandleSelectChannel()
     {
         FileUtils.WriteSelectChannel(Context.Guild.Id, Context.Channel.Id);
@@ -166,6 +167,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("채널고정-해제", "고정해둔 채널을 해제합니다.")]
+    [DefaultMemberPermissions(GuildPermission.Administrator)]
     public async Task handleDeleteChannel()
     {
         if (SelectChannel.ContainsKey(Context.Guild.Id) == true)
