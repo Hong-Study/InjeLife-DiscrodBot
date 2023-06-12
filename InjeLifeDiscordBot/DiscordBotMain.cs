@@ -58,7 +58,23 @@ public class DiscordBotMain
         
         _client.Ready += async () =>
         {
+            // 글로벌 정리
+            // await _client.Rest.DeleteAllGlobalCommandsAsync();
             await _client.SetGameAsync("Please Use / Command");
+
+            if (IsDebug())
+            {
+                //await FileUtils.ReadSelectChannel(_client, config);
+                foreach (var guild in _client.Guilds)
+                {
+                    ulong id = guild.Id;
+                    await sCommands.RegisterCommandsToGuildAsync(id);
+                }
+            }
+            else
+            {
+                await sCommands.RegisterCommandsGloballyAsync();
+            }
         };
 
         await _client.LoginAsync(TokenType.Bot, config["tokens:discord"]);
