@@ -10,10 +10,13 @@ using System.Threading.Channels;
 
 public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
 {
+    public static Dictionary<ulong, List<ulong>> counts = new Dictionary<ulong, List<ulong>>();
+    public static Dictionary<ulong, ulong> SelectChannel = new Dictionary<ulong, ulong>();
+
     [SlashCommand("ping", "Hello World")]
     public async Task HandlePingTest()
     {
-        if (Util.CheckChannel(Context))
+        if (CheckChannel(Context))
         {
             await RespondAsync("Bot is alive");
         }
@@ -26,9 +29,9 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("학식", "금일의 학식을 보여드립니다.")]
     public async Task HandleTodayFood()
     {
-        if (Util.CheckChannel(Context))
+        if (CheckChannel(Context))
         {
-            var sql = Util.GlobalHost.Services.GetRequiredService<SQLManager>();
+            var sql = DiscordBotMain.GlobalHost.Services.GetRequiredService<SQLManager>();
 
             var myEmbed = sql.TodayCafeteria();
 
@@ -43,13 +46,13 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("요일별-학식", "Todo")]
     public async Task HandleComponentCommand()
     {
-        if (Util.CheckChannel(Context))
+        if (CheckChannel(Context))
         {
             try
             {
-                if (Util.counts.ContainsKey(Context.Channel.Id) == false)
+                if (counts.ContainsKey(Context.Channel.Id) == false)
                 {
-                    Util.counts[Context.Channel.Id] = new List<ulong>();
+                    counts[Context.Channel.Id] = new List<ulong>();
                 }
             }
             catch (Exception ex)
@@ -76,7 +79,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
 
             // 요청이 끝난 후 디스코드에 생성된 메시지 아이디를 가져옴.
             var message = GetOriginalResponseAsync().Result;
-            Util.counts[Context.Channel.Id].Add(message.Id);
+            counts[Context.Channel.Id].Add(message.Id);
 
             // FlowAsync로도 가능하기는 한데, 두번 보내야한다는 단점이 있음.
         }
@@ -116,7 +119,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     {
         try
         {
-            foreach (var contain in Util.counts[Context.Channel.Id])
+            foreach (var contain in counts[Context.Channel.Id])
             {
                 await Context.Channel.DeleteMessageAsync(contain);
             }
@@ -127,7 +130,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
         }
 
         Embed myembed;
-        var sql = Util.GlobalHost.Services.GetService<SQLManager>();
+        var sql = DiscordBotMain.GlobalHost.Services.GetService<SQLManager>();
         if (sql == null)
             return;
 
@@ -161,7 +164,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("채널고정", "원하는 채널에 고정 시킵니다.")]
     public async Task HandleSelectChannel()
     {
-        Util.SelectChannel[Context.Guild.Id] = Context.Channel.Id;
+        SelectChannel[Context.Guild.Id] = Context.Channel.Id;
 
         await RespondAsync("채널 고정 성공 : " + Context.Channel.Name);
     }
@@ -169,14 +172,29 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("채널고정-해제", "고정해둔 채널을 해제합니다.")]
     public async Task handleDeleteChannel()
     {
-        if (Util.SelectChannel.ContainsKey(Context.Guild.Id) == true)
+        if (SelectChannel.ContainsKey(Context.Guild.Id) == true)
         {
-            Util.SelectChannel.Remove(Context.Guild.Id);
+            SelectChannel.Remove(Context.Guild.Id);
             await RespondAsync($"{Context.Channel.Name} 채널 고정을 해제하였습니다.");
         }
         else
         {
             await RespondAsync("고정해둔 채널이 없습니다.");
         }
+    }
+    public static bool CheckChannel(SocketInteractionContext context)
+    {
+        if (SelectChannel.ContainsKey(context.Guild.Id) == true)
+        {
+            if (SelectChannel[context.Guild.Id] == context.Channel.Id)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
