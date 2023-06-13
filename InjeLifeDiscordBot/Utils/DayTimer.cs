@@ -11,13 +11,14 @@ public class DayTimer
     private System.Timers.Timer aTimer;
     private Action _action;
 
-    private readonly double minuteTime = 1000 * 60; // 1분
+    private readonly double minuteTime = 1000 * 60 * 60; // 1분
     private DayOfWeek yesterdayDate = DateTime.Today.DayOfWeek;
-    
+    private int SetTime { get; set; }
+
     public void Start(Action action)
     {
         _action = action;
-
+        SetTime = 6;
         SetTimer();
     }
 
@@ -35,17 +36,17 @@ public class DayTimer
 
     private void OnTimedEvent(Object source, ElapsedEventArgs e)
     {
-        DayOfWeek todayDate = DateTime.Today.DayOfWeek;
+        DateTime today = DateTime.Today;
 
-        if (todayDate != yesterdayDate)
+        if (today.Hour == SetTime)
         {
-            if (!(todayDate == DayOfWeek.Sunday || todayDate == DayOfWeek.Saturday))
+            if (!(today.DayOfWeek == DayOfWeek.Sunday || today.DayOfWeek == DayOfWeek.Saturday))
             {
                 //수행할 타이머 이벤트
                 _action.Invoke();
             }
 
-            yesterdayDate = todayDate;
+            yesterdayDate = today.DayOfWeek;
         }
     }
 }

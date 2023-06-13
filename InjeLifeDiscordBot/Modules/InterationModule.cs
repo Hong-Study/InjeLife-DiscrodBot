@@ -76,9 +76,9 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
             await RespondAsync("Show Select Menu", components: component.Build());
 
             // 요청이 끝난 후 디스코드에 생성된 메시지 아이디를 가져옴.
+            
             var message = GetOriginalResponseAsync().Result;
             counts[Context.Channel.Id].Add(message.Id);
-
             // FlowAsync로도 가능하기는 한데, 두번 보내야한다는 단점이 있음.
         }
         else
@@ -87,46 +87,9 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
         }
     }
 
-    [SlashCommand("청소", "Clear Text")]
-    public async Task HandleClearChat()
-    {
-        // 채널의 전체 메시지 정보를 구함
-        var message = Context.Channel.GetMessagesAsync().FlattenAsync().Result;
-        
-        // 14일 이전 메시지 삭제하는 코드
-        //var filteredMessages = message.Where(x => (DateTimeOffset.UtcNow - x.Timestamp).TotalDays <= 14);
-
-        // Get the total amount of messages.
-        var count = message.Count();
-
-        // Check if there are any messages to delete.
-        if (count == 0)
-            await RespondAsync("Nothing to delete.");
-        else
-        {
-
-            // 형변환 이후, 전체 메시지를 삭제하는 코드
-            await ((ITextChannel)Context.Channel).DeleteMessagesAsync(message);
-
-            await RespondAsync($"Done. Removed {count} {(count > 1 ? "messages" : "message")}.");
-        }
-    }
-
     [ComponentInteraction("menu")]
     public async Task HandleMenuSelection(string[] inputs)
     {
-        try
-        {
-            foreach (var contain in counts[Context.Channel.Id])
-            {
-                await Context.Channel.DeleteMessageAsync(contain);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-
         Embed myembed;
 
         if (inputs[0] == "Mon")
@@ -154,10 +117,48 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
             myembed = SQLManager.Instacne.WeeksCafeterial("금요일 학식", DateUtils.Friday());
             await RespondAsync(embed: myembed);
         }
+
+        try
+        {
+            foreach (var contain in counts[Context.Channel.Id])
+            {
+                await Context.Channel.DeleteMessageAsync(contain);
+            }
+            counts[Context.Channel.Id].Clear();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    [SlashCommand("청소", "Clear Text")]
+    [DefaultMemberPermissions(GuildPermission.Administrator)]
+    public async Task HandleClearChat()
+    {
+        // 채널의 전체 메시지 정보를 구함
+        var message = Context.Channel.GetMessagesAsync().FlattenAsync().Result;
+        
+        // 14일 이전 메시지 삭제하는 코드
+        //var filteredMessages = message.Where(x => (DateTimeOffset.UtcNow - x.Timestamp).TotalDays <= 14);
+
+        // Get the total amount of messages.
+        var count = message.Count();
+
+        // Check if there are any messages to delete.
+        if (count == 0)
+            await RespondAsync("Nothing to delete.");
+        else
+        {
+
+            // 형변환 이후, 전체 메시지를 삭제하는 코드
+            await ((ITextChannel)Context.Channel).DeleteMessagesAsync(message);
+
+            await RespondAsync($"Done. Removed {count} {(count > 1 ? "messages" : "message")}.");
+        }
     }
 
     [SlashCommand("채널고정", "원하는 채널에 고정 시킵니다.")]
-    [DefaultMemberPermissions(GuildPermission.Administrator)]
     public async Task HandleSelectChannel()
     {
         FileUtils.WriteSelectChannel(Context.Guild.Id, Context.Channel.Id);
@@ -167,7 +168,6 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("채널고정-해제", "고정해둔 채널을 해제합니다.")]
-    [DefaultMemberPermissions(GuildPermission.Administrator)]
     public async Task handleDeleteChannel()
     {
         if (SelectChannel.ContainsKey(Context.Guild.Id) == true)

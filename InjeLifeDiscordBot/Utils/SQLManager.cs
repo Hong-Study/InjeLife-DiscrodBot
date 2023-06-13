@@ -80,7 +80,8 @@ public class SQLManager
                 {
                     cmd.Connection = mysql;
                     string format = $"'{year}-{month}-{days}'";
-                    cmd.CommandText = $"SELECT * FROM university_meals WHERE published_at = {format} LIMIT 3";
+                    cmd.CommandText = $"SELECT * FROM university_meals WHERE published_at = {format} ORDER BY course ASC LIMIT 3";
+
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
