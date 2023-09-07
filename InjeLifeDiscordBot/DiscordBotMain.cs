@@ -4,16 +4,10 @@ using Discord;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Timers;
 
 public class DiscordBotMain
 {
-    public static DayTimer dayTimer;
-    
     public async Task BotMain()
     {
         // SetBasePath는 구성 정보의 기본 디렉터리 설정
@@ -21,7 +15,7 @@ public class DiscordBotMain
             .SetBasePath(AppContext.BaseDirectory)
             .AddYamlFile("config.yml")
             .Build();
-
+        
         // 의존성 주입 이게 머노
         // Net Core 호스팅 환경 구성 및 애플리케이션 실행과 생명주기 관리 담당
         using IHost host = Host.CreateDefaultBuilder()
@@ -52,10 +46,10 @@ public class DiscordBotMain
 
         SQLManager.Instacne.SetConfig(config);
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
-        
+
         _client.Log += async (LogMessage msg) => { Console.WriteLine(msg.Message); await Task.CompletedTask; };
         sCommands.Log += async (LogMessage msg) => { Console.WriteLine(msg.Message); await Task.CompletedTask; };
-        
+
         _client.Ready += async () =>
         {
             // 글로벌 정리
@@ -70,6 +64,24 @@ public class DiscordBotMain
                     ulong id = guild.Id;
                     await sCommands.RegisterCommandsToGuildAsync(id);
                 }
+
+                System.Timers.Timer timer = new System.Timers.Timer();
+                timer.Interval = 1000 * 60;
+                timer.AutoReset = true;
+
+                timer.Elapsed += async (sender, e) =>
+                {
+                    DateTime today = DateTime.Today;
+                    if (today.Hour == 9)
+                    {
+                        if (!(today.DayOfWeek == DayOfWeek.Sunday || today.DayOfWeek == DayOfWeek.Saturday))
+                        {
+                            //수행할 타이머 이벤트
+                            await DoTimer(host);
+                        }
+                    }
+                };
+                timer.Enabled = true;
             }
             else
             {
@@ -80,10 +92,7 @@ public class DiscordBotMain
         await _client.LoginAsync(TokenType.Bot, config["tokens:discord"]);
         await _client.StartAsync();
 
-        dayTimer = new DayTimer();
-        dayTimer.Start(() => { _ = DoTimer(host); });
-        
-        await Task.Delay(-1);
+        await Task.Delay(-1);        
     }
 
     static bool IsDebug()

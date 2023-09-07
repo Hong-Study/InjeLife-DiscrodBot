@@ -48,23 +48,22 @@ public class SQLManager
     public Embed TodayCafeteria()
     {
         DateTime date = DateTime.Now;
-
-        return ReadCafeterial("Today 학식", date.Year, date.Month, date.Day);
+        return ReadCafeterial("Today 학식", date.Year, date.Month, date.Day, date.DayOfWeek);
     }
 
     public Embed WeeksCafeterial(string title, int day)
     {
         DateTime date = DateTime.Now;
 
-        return ReadCafeterial(title, date.Year, date.Month, day);
+        return ReadCafeterial(title, date.Year, date.Month, day, date.DayOfWeek);
     }
-    public Embed ReadCafeterial(string title, int year, int month, int days)
+    public Embed ReadCafeterial(string title, int year, int month, int days, DayOfWeek dayOfWeek)
     {
         EmbedBuilder builder = new EmbedBuilder()
             .WithTitle(title)
             .WithColor(Color.Green);
 
-        if (days == (int)DayOfWeek.Sunday || days == (int)DayOfWeek.Saturday)
+        if (dayOfWeek == DayOfWeek.Sunday || dayOfWeek == DayOfWeek.Saturday)
         {
             builder.WithDescription("주말이므로 존재하지 않습니다.");
         }
