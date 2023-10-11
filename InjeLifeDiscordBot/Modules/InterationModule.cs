@@ -40,6 +40,20 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
             await RespondAsync("설정된 채널이 아닙니다.");
         }
     }
+    [SlashCommand("내일학식", "다음날의 학식을 보여드립니다.")]
+    public async Task HandleTomorrowFood()
+    {
+        if(CheckChannel(Context))
+        {
+            var myEmbed = SQLManager.Instacne.TommrowCafeteria();
+
+            await RespondAsync(embed: myEmbed);
+        }
+        else
+        {
+            await RespondAsync("설정된 채널이 아닙니다.");
+        }
+    }
     
     [SlashCommand("요일별-학식", "Todo")]
     public async Task HandleComponentCommand()
