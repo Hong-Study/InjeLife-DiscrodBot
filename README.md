@@ -25,3 +25,19 @@
 [SQLManager.cs](InjeLifeDiscordBot/Utils/SQLManager.cs) : SQL에서 리스트를 받아와서 정리해주는 클래스
 
 # 작동 모습
+### /학식 기능
+![image](Image/학식.PNG)
+
+### /내일학식 기능
+![image](Image/내일학식.PNG)
+
+### /요일별-학식 기능
+![image](Image/요일별학식1.PNG)
+![image](Image/요일별학식2.PNG)
+![image](Image/요일별학식3.PNG)
+
+### /채널고정
+- 특정 채널에서만 사용하고 싶을 때 사용하는 기능으로, 특정 채널에서 /채널고정을 하게 되면 다른 채널에서는 봇 사용 불가
+
+### /채널고정해제
+- 채널고정되어 있는 것을 해제하는 코드로, /채널고정을 해둔 곳에서 사용해야 합니다.
