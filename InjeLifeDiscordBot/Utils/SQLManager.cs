@@ -51,6 +51,12 @@ public class SQLManager
         return ReadCafeterial("Today 학식", date.Year, date.Month, date.Day, date.DayOfWeek);
     }
 
+    public Embed TommrowCafeteria()
+    {
+        DateTime date = DateTime.Now.AddDays(1);
+        return ReadCafeterial("내일 학식", date.Year, date.Month, date.Day, date.DayOfWeek);
+    }
+
     public Embed WeeksCafeterial(string title, int day)
     {
         DateTime date = DateTime.Now;
