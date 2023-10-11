@@ -24,7 +24,7 @@
 
 [SQLManager.cs](InjeLifeDiscordBot/Utils/SQLManager.cs) : SQL에서 리스트를 받아와서 정리해주는 클래스
 
-# 작동 모습
+# 기능
 ### /학식 기능
 ![image](Image/학식.PNG)
 
