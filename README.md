@@ -33,7 +33,9 @@
 
 ### /요일별-학식 기능
 ![image](Image/요일별학식1.PNG)
+
 ![image](Image/요일별학식2.PNG)
+
 ![image](Image/요일별학식3.PNG)
 
 ### /채널고정
