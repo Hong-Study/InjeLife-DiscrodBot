@@ -16,6 +16,7 @@ public class InteractionHandler
         _services = services;
     }
 
+    // 초기화
     public async Task InitializeAsync()
     {
         await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
@@ -23,6 +24,7 @@ public class InteractionHandler
         _client.InteractionCreated += HandleInteration;
     }
 
+    // 커맨드 입력 받는 함수
     private async Task HandleInteration(SocketInteraction arg)
     {
         try
