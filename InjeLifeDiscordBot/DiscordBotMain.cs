@@ -36,11 +36,14 @@ public class DiscordBotMain
 
     public async Task RunAsync(IHost host)
     {
+        // host의 범위 지정
         using IServiceScope serviceScope = host.Services.CreateScope();
         IServiceProvider provider = serviceScope.ServiceProvider;
 
+        // 싱글톤 가져오기
         var _client = provider.GetRequiredService<DiscordSocketClient>();
         var sCommands = provider.GetRequiredService<InteractionService>();
+
         // 읽어본 Yaml 파일에 대한 구성 정보를 가져오는 코드
         var config = provider.GetRequiredService<IConfigurationRoot>();
 
@@ -50,6 +53,7 @@ public class DiscordBotMain
         _client.Log += async (LogMessage msg) => { Console.WriteLine(msg.Message); await Task.CompletedTask; };
         sCommands.Log += async (LogMessage msg) => { Console.WriteLine(msg.Message); await Task.CompletedTask; };
 
+        // Read 상태일 때 실행할 람다 함수
         _client.Ready += async () =>
         {
             // 글로벌 정리
@@ -69,6 +73,7 @@ public class DiscordBotMain
                 timer.Interval = 1000 * 60;
                 timer.AutoReset = true;
 
+                // 정상 작동이 안됨. 수정 필요
                 timer.Elapsed += async (sender, e) =>
                 {
                     DateTime today = DateTime.Today;
@@ -89,9 +94,13 @@ public class DiscordBotMain
             }
         };
 
+        // LoginAsync 실행 결과 대기
         await _client.LoginAsync(TokenType.Bot, config["tokens:discord"]);
+
+        // StartAsync 실행 결과 대기
         await _client.StartAsync();
 
+        // 무한 루프
         await Task.Delay(-1);        
     }
 
