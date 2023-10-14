@@ -10,7 +10,7 @@ public class FileUtils
 {
     static string line = @"{0}: {1}";
 
-    public static async Task ReadSelectChannel(DiscordSocketClient client, IConfigurationRoot config)
+    public static void ReadSelectChannel(DiscordSocketClient client, IConfigurationRoot config)
     {
         try
         {
@@ -28,7 +28,6 @@ public class FileUtils
         {
             Console.WriteLine(ex.Message);
         }
-        await Task.CompletedTask;
     }
 
     public static void WriteSelectChannel(ulong guildId, ulong chennelId)

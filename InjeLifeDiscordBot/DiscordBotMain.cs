@@ -18,7 +18,7 @@ public class DiscordBotMain
         
         // 의존성 주입 이게 머노
         // Net Core 호스팅 환경 구성 및 애플리케이션 실행과 생명주기 관리 담당
-        using IHost host = Host.CreateDefaultBuilder()
+        IHost host = Host.CreateDefaultBuilder()
             .ConfigureServices((_, services) =>
             services
             .AddSingleton(config)
@@ -62,7 +62,7 @@ public class DiscordBotMain
 
             if (IsDebug())
             {
-                //await FileUtils.ReadSelectChannel(_client, config);
+                FileUtils.ReadSelectChannel(_client, config);
                 foreach (var guild in _client.Guilds)
                 {
                     ulong id = guild.Id;
@@ -70,7 +70,7 @@ public class DiscordBotMain
                 }
 
                 System.Timers.Timer timer = new System.Timers.Timer();
-                timer.Interval = 1000 * 60;
+                timer.Interval = 1000;
                 timer.AutoReset = true;
 
                 // 정상 작동이 안됨. 수정 필요
@@ -116,15 +116,22 @@ public class DiscordBotMain
     // 타이머 내부 함수로, 다음날이 되면 실행한다. 1분마다 확인하게 됨.   
     public static async Task DoTimer(IHost host)
     {
-        var client = host.Services.GetRequiredService<DiscordSocketClient>();
+        using IServiceScope serviceScope = host.Services.CreateScope();
+        IServiceProvider provider = serviceScope.ServiceProvider;
+
+        var client = provider.GetRequiredService<DiscordSocketClient>();
+
         foreach (var guild in client.Guilds)
         {
+            Console.WriteLine("DoTimer");
+
             if (InteractionModule.SelectChannel.ContainsKey(guild.Id) == true)
             {
-                var channel = guild.GetTextChannel(InteractionModule.SelectChannel[guild.Id]);
-                var sql = host.Services.GetRequiredService<SQLManager>();
+                Console.WriteLine(guild.Id);
 
-                var myEmbed = sql.TodayCafeteria();
+                var channel = guild.GetTextChannel(InteractionModule.SelectChannel[guild.Id]);
+
+                var myEmbed = SQLManager.Instacne.TodayCafeteria();
 
                 await channel.SendMessageAsync(embed: myEmbed);
             }
