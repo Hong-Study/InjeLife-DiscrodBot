@@ -8,7 +8,7 @@
 # 배포 방식
 ### C# Linux Build
 - 먼저 .sln이 아닌 .csproj가 들어가 있는 폴더에서 cmd 창을 연다.
-- ``` dotnet public -r linux-x64 ```
+- ``` dotnet publish -r linux-x64 ```
 - bin/Debug/net6.0 에 linux-x64 폴더 생성
 - 이후 리눅스로 옮김(본인은 WIN-SCP 사용)
 
