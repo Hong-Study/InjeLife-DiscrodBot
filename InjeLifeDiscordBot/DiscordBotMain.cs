@@ -28,7 +28,8 @@ public class DiscordBotMain
                 AlwaysDownloadUsers = true,
             }))
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
-            .AddSingleton<InteractionHandler>())
+            .AddSingleton<InteractionHandler>()
+            .AddSingleton<SQLManager>())
             .Build();
 
         await RunAsync(host);
@@ -47,7 +48,6 @@ public class DiscordBotMain
         // 읽어본 Yaml 파일에 대한 구성 정보를 가져오는 코드
         var config = provider.GetRequiredService<IConfigurationRoot>();
 
-        SQLManager.Instacne.SetConfig(config);
         await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
         _client.Log += async (LogMessage msg) => { Console.WriteLine(msg.Message); await Task.CompletedTask; };
@@ -120,18 +120,19 @@ public class DiscordBotMain
         IServiceProvider provider = serviceScope.ServiceProvider;
 
         var client = provider.GetRequiredService<DiscordSocketClient>();
+        var sqlManager = provider.GetRequiredService<SQLManager>();
 
         foreach (var guild in client.Guilds)
         {
             Console.WriteLine("DoTimer");
 
-            if (InteractionModule.SelectChannel.ContainsKey(guild.Id) == true)
+            if (InteractionModule.SelectChannel.ContainsKey(guild.Id) == true && sqlManager.IsWeekday(DateTime.Now.DayOfWeek))
             {
                 Console.WriteLine(guild.Id);
 
                 var channel = guild.GetTextChannel(InteractionModule.SelectChannel[guild.Id]);
 
-                var myEmbed = SQLManager.Instacne.TodayCafeteria();
+                var myEmbed = sqlManager.TodayCafeteria();
 
                 await channel.SendMessageAsync(embed: myEmbed);
             }

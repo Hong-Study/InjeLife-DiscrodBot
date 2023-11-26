@@ -12,7 +12,13 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
 {
     public static Dictionary<ulong, List<ulong>> counts = new Dictionary<ulong, List<ulong>>();
     public static Dictionary<ulong, ulong> SelectChannel = new Dictionary<ulong, ulong>();
+    public SQLManager _sqlManager;
 
+    public InteractionModule(SQLManager sqlManager)
+    {
+        _sqlManager = sqlManager;
+    }
+    
     [SlashCommand("ping", "Hello World")]
     public async Task HandlePingTest()
     {
@@ -31,7 +37,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     {
         if (CheckChannel(Context))
         {
-            var myEmbed = SQLManager.Instacne.TodayCafeteria();
+            var myEmbed = _sqlManager.TodayCafeteria();
 
             await RespondAsync(embed: myEmbed);
         }
@@ -45,7 +51,7 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
     {
         if(CheckChannel(Context))
         {
-            var myEmbed = SQLManager.Instacne.TommrowCafeteria();
+            var myEmbed = _sqlManager.TommrowCafeteria();
 
             await RespondAsync(embed: myEmbed);
         }
@@ -108,27 +114,27 @@ public class InteractionModule : InteractionModuleBase<SocketInteractionContext>
 
         if (inputs[0] == "Mon")
         {
-            myembed = SQLManager.Instacne.WeeksCafeterial("월요일 학식", DateUtils.Monday());
+            myembed = _sqlManager.WeeksCafeterial("월요일 학식", DateUtils.Monday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Tue")
         {
-            myembed = SQLManager.Instacne.WeeksCafeterial("화요일 학식", DateUtils.Tusday());
+            myembed = _sqlManager.WeeksCafeterial("화요일 학식", DateUtils.Tusday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Wed")
         {
-            myembed = SQLManager.Instacne.WeeksCafeterial("수요일 학식", DateUtils.Wednesday());
+            myembed = _sqlManager.WeeksCafeterial("수요일 학식", DateUtils.Wednesday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Thu")
         {
-            myembed = SQLManager.Instacne.WeeksCafeterial("목요일 학식", DateUtils.Thursday());
+            myembed = _sqlManager.WeeksCafeterial("목요일 학식", DateUtils.Thursday());
             await RespondAsync(embed: myembed);
         }
         else if (inputs[0] == "Fri")
         {
-            myembed = SQLManager.Instacne.WeeksCafeterial("금요일 학식", DateUtils.Friday());
+            myembed = _sqlManager.WeeksCafeterial("금요일 학식", DateUtils.Friday());
             await RespondAsync(embed: myembed);
         }
 

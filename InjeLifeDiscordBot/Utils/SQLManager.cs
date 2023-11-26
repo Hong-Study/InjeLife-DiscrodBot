@@ -5,8 +5,6 @@ using Npgsql;
 
 public class SQLManager
 {
-    static SQLManager _instance = new SQLManager();
-    public static SQLManager Instacne { get { return _instance; } }
     private IConfigurationRoot _config;
 
     private string _host = "";
@@ -15,9 +13,9 @@ public class SQLManager
     private string _userId = "";
     private string _password = "";
     private string _connectionAddress = "";
-    public void SetConfig(IConfigurationRoot config)
+    public SQLManager(IConfigurationRoot configurationRoot)
     {
-        _config = config;
+        _config = configurationRoot;
 
         _host = _config["DB_HOST"];
         _port = _config["DB_PORT"];
@@ -50,6 +48,15 @@ public class SQLManager
         DateTime date = DateTime.Now;
         return ReadCafeterial("Today 학식", date.Year, date.Month, date.Day, date.DayOfWeek);
     }
+    public bool IsWeekday(DayOfWeek week)
+    {
+        if (week == DayOfWeek.Sunday || week == DayOfWeek.Saturday)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     public Embed TommrowCafeteria()
     {
@@ -60,23 +67,17 @@ public class SQLManager
     public Embed WeeksCafeterial(string title, int day)
     {
         DateTime date = DateTime.Now;
-
         return ReadCafeterial(title, date.Year, date.Month, day, date.DayOfWeek);
     }
+
     public Embed ReadCafeterial(string title, int year, int month, int days, DayOfWeek dayOfWeek)
     {
         EmbedBuilder builder = new EmbedBuilder()
             .WithTitle(title)
             .WithColor(Color.Green);
-
-        if (dayOfWeek == DayOfWeek.Sunday || dayOfWeek == DayOfWeek.Saturday)
-        {
-            builder.WithDescription("주말이므로 존재하지 않습니다.");
-        }
-        else
+        if (IsWeekday(dayOfWeek))
         {
             builder.WithDescription("학식입니다.");
-
             try
             {
                 NpgsqlConnection mysql = new NpgsqlConnection(_connectionAddress);
@@ -108,8 +109,10 @@ public class SQLManager
             {
                 Console.WriteLine(ex.Message);
             }
-
-            return builder.Build();
+        }
+        else
+        {
+            builder.WithDescription("주말이므로 존재하지 않습니다.");
         }
         return builder.Build();
     }
