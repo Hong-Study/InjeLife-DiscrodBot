@@ -21,7 +21,7 @@ public class FileUtils
                 {
                     continue;
                 }
-                InteractionModule.SelectChannel[guild.Id] = ulong.Parse(value);
+                InjeLifeModule.SelectChannel[guild.Id] = ulong.Parse(value);
             }
         }
         catch (Exception ex)
